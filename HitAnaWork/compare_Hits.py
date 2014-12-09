@@ -33,7 +33,7 @@ h_roi_peak_1.Draw()
 c_roi_peak.cd(3)
 h_roi_peak_2.Draw()
 
-c_roi_peak.SaveAs("roi_peak.eps")
+c_roi_peak.SaveAs("plots/roi_peak.eps")
 
 finalinput = raw_input("Hit enter to exit.")
 
