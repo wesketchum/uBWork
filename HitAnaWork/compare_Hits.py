@@ -118,9 +118,9 @@ tree.Project("h_rff_peak_0","Hits_PeakCharge[2]","plane==0")
 tree.Project("h_rff_peak_1","Hits_PeakCharge[2]","plane==1")
 tree.Project("h_rff_peak_2","Hits_PeakCharge[2]","plane==2")
 
-nbins=200
-lowbin=-0.05
-highbin=0.1
+nbins=150
+lowbin=-0.15
+highbin=0.15
 
 hcomp_g_peak_0 = TH1F("hcomp_g_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
 hcomp_g_peak_1 = TH1F("hcomp_g_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
@@ -212,8 +212,8 @@ c_comp_hits_peak.SaveAs("plots/hits_peak_compare_norff.eps")
 
 
 nbins=100
-lowbin=-2
-highbin=2
+lowbin=-5
+highbin=5
 
 hcomp_g_peaktime_0 = TH1F("hcomp_g_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
 hcomp_g_peaktime_1 = TH1F("hcomp_g_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
@@ -288,9 +288,9 @@ legend.Draw()
 c_comp_hits_peaktime.SaveAs("plots/hits_peaktime_compare.eps")
 
 
-nbins=200
+nbins=125
 lowbin=-1.
-highbin=1.
+highbin=1.5
 
 hcomp_g_mc_peak_0 = TH1F("hcomp_g_mc_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
 hcomp_g_mc_peak_1 = TH1F("hcomp_g_mc_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
@@ -364,9 +364,9 @@ legend.Draw()
 c_comp_hits_mc_peak.SaveAs("plots/hits_mc_peak_compare.eps")
 
 
-nbins=100
-lowbin=-3.5
-highbin=3.5
+nbins=200
+lowbin=-10
+highbin=10
 
 hcomp_g_mc_peaktime_0 = TH1F("hcomp_g_mc_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
 hcomp_g_mc_peaktime_1 = TH1F("hcomp_g_mc_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
