@@ -24,7 +24,7 @@ def CreateHistSet(nbins,lowbin,highbin,name,title,xaxis,tree,val,cuts="1",color=
     hists = []
     for p in range(0,3):
         hists.append(CreateHist(nbins,lowbin,highbin,name,p,title,xaxis))
-        tree.Project(hists[-1].GetName(),val,"plane==0&&"+cuts)
+        tree.Project(hists[-1].GetName(),val,"plane=="+str(p)+"&&"+cuts)
         HistShowOverflow(hists[-1])
         hists[-1].SetLineWidth(2)
         hists[-1].SetLineColor(color)
@@ -251,6 +251,94 @@ labels = ["RFFHit","CCHit","GaussHit"]
 c_comp_nhits_mc = CreateCanvas3("nhits_compare_mc",title,labels,
                                 hists_comp_r_nhits_mc,hists_comp_c_nhits_mc,hists_comp_g_nhits_mc)
 c_comp_nhits_mc.Draw()
+
+
+nbins=200
+lowbin=-2
+highbin=2
+name="time_compare_mc"
+title="Hits average time MC comparison"
+xaxis="(Hit average time - MC average time)"
+hists_comp_g_time_mc = CreateHistSet(nbins,lowbin,highbin,
+                                     name+"_g",title,xaxis,
+                                     tree,
+                                     "(Hits_wAverageTime[0]-MCHits_wAverageTime)",
+                                     "roi_peak_charge>1&&NHits[0]>0",
+                                     kBlack)
+hists_comp_c_time_mc = CreateHistSet(nbins,lowbin,highbin,
+                                     name+"_c",title,xaxis,
+                                     tree,
+                                     "(Hits_wAverageTime[1]-MCHits_wAverageTime)",
+                                     "roi_peak_charge>1&&NHits[1]>0",
+                                     kRed)
+hists_comp_r_time_mc = CreateHistSet(nbins,lowbin,highbin,
+                                     name+"_r",title,xaxis,
+                                     tree,
+                                     "(Hits_wAverageTime[2]-MCHits_wAverageTime)",
+                                     "roi_peak_charge>1&&NHits[2]>0",
+                                     kBlue)
+labels = ["GaussHit","CCHit","RFFHit"]
+c_comp_hits_time_mc = CreateCanvas3("hits_time_compare_mc",title,labels,
+                                    hists_comp_g_time_mc,hists_comp_c_time_mc,hists_comp_r_time_mc)
+c_comp_hits_time_mc.Draw()
+
+nbins=200
+lowbin=-3
+highbin=5
+name="integral_compare"
+title="Hits integral comparison"
+xaxis="(Hit ADC integral - ROI ADC integral)/ROI ADC integral"
+hists_comp_g_integral = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_g",title,xaxis,
+                                      tree,
+                                      "(Hits_IntegratedCharge[0]-roi_charge)/roi_charge",
+                                      "roi_peak_charge>1",
+                                      kBlack)
+hists_comp_c_integral = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_c",title,xaxis,
+                                      tree,
+                                      "(Hits_IntegratedCharge[1]-roi_charge)/roi_charge",
+                                      "roi_peak_charge>1",
+                                      kRed)
+hists_comp_r_integral = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_r",title,xaxis,
+                                      tree,
+                                      "(Hits_IntegratedCharge[2]-roi_charge)/roi_charge",
+                                      "roi_peak_charge>1",
+                                      kBlue)
+labels = ["CCHit","GaussHit","RFFHit"]
+c_comp_hits_integral = CreateCanvas3("hits_integral_compare",title,labels,
+                                     hists_comp_c_integral,hists_comp_g_integral,hists_comp_r_integral)
+c_comp_hits_integral.Draw()
+
+nbins=150
+lowbin=-1
+highbin=2
+name="integral_compare_mc"
+title="Hits integral MC comparison"
+xaxis="(Hit ADC integral - MC charge integral)/MC charge integral"
+hists_comp_g_integral_mc = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_g",title,xaxis,
+                                      tree,
+                                      "(Hits_IntegratedCharge[0]-MCHits_IntegratedCharge)/MCHits_IntegratedCharge",
+                                      "roi_peak_charge>1",
+                                      kBlack)
+hists_comp_c_integral_mc = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_c",title,xaxis,
+                                      tree,
+                                      "(Hits_IntegratedCharge[1]-MCHits_IntegratedCharge)/MCHits_IntegratedCharge",
+                                      "roi_peak_charge>1",
+                                      kRed)
+hists_comp_r_integral_mc = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_r",title,xaxis,
+                                      tree,
+                                      "(Hits_IntegratedCharge[2]-MCHits_IntegratedCharge)/MCHits_IntegratedCharge",
+                                      "roi_peak_charge>1",
+                                      kBlue)
+labels = ["CCHit","GaussHit","RFFHit"]
+c_comp_hits_integral_mc = CreateCanvas3("hits_integral_compare_mc",title,labels,
+                                     hists_comp_c_integral_mc,hists_comp_g_integral_mc,hists_comp_r_integral_mc)
+c_comp_hits_integral_mc.Draw()
 
 finalinput = raw_input("Hit enter to exit.")
 sys.exit()
