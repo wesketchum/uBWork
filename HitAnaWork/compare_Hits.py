@@ -79,6 +79,28 @@ hists_roi_peak = CreateHistSet(125,-10,140,name,title,"ROI peak ADC",tree,"roi_p
 c_roi_peak = CreateCanvas(name,title,hists_roi_peak)
 c_roi_peak.Draw()
 
+name = "roi_integral"
+title = "ROI Integral ADC"
+hists_roi_integral = CreateHistSet(150,-100,1500,name,title,"ROI integral ADC",tree,"roi_charge")
+c_roi_integral = CreateCanvas(name,title,hists_roi_integral)
+c_roi_integral.Draw()
+
+h_roi_charge_prof_0 = TProfile("h_roi_charge_prof_0","ROI integral vs. peak, Plane 0;ROI peak charge;ROI integral / ROI size",100,0,50)
+h_roi_charge_prof_1 = TProfile("h_roi_charge_prof_1","ROI integral vs. peak, Plane 1;ROI peak charge;ROI integral / ROI size",100,0,50)
+h_roi_charge_prof_2 = TProfile("h_roi_charge_prof_2","ROI integral vs. peak, Plane 2;ROI peak charge;ROI integral / ROI size",100,0,50)
+tree.Project(h_roi_charge_prof_0.GetName(),"roi_charge/roi_size:roi_peak_charge","plane==0")
+tree.Project(h_roi_charge_prof_1.GetName(),"roi_charge/roi_size:roi_peak_charge","plane==1")
+tree.Project(h_roi_charge_prof_2.GetName(),"roi_charge/roi_size:roi_peak_charge","plane==2")
+h_roi_charge_prof_0.Fit("pol1","","",7,30)
+h_roi_charge_prof_1.Fit("pol1","","",7,30)
+h_roi_charge_prof_2.Fit("pol1","","",7,30)
+h_roi_charge_profs = [ h_roi_charge_prof_0, h_roi_charge_prof_1, h_roi_charge_prof_2 ]
+c_roi_charge_prof = CreateCanvas("roi_charge_prof","ROI integral vs peak",h_roi_charge_profs)
+c_roi_charge_prof.SaveAs("plots/roi_charge_prof.eps")
+c_roi_charge_prof.Draw()
+
+input("Press enter to continue.")
+
 name = "peak_compare"
 title = "Peak comparison"
 hists_comp_peak = CreateHistSet(125,-1,1.4,
