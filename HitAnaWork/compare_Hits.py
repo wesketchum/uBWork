@@ -15,431 +15,242 @@ myfile = TFile(file_name,"READ")
 mydir  = myfile.Get("hitana")
 tree  = mydir.Get("wireDataTree")
 
-nbins=200
-lowbin=-10
-highbin=140
+def CreateHist(nbins,lowbin,highbin,name,plane,title,xaxis):
+    hname = "h_"+name+"_"+str(plane)
+    htitle = title+", Plane "+str(plane)+";"+xaxis+";ROIs"
+    return TH1F(hname,htitle,nbins,lowbin,highbin)
 
-h_roi_peak_0 = TH1F("h_roi_peak_0","ROI Peak ADC, Plane 0;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_roi_peak_1 = TH1F("h_roi_peak_1","ROI Peak ADC, Plane 1;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_roi_peak_2 = TH1F("h_roi_peak_2","ROI Peak ADC, Plane 2;Peak ADC;ROIs",nbins,lowbin,highbin)
+def CreateHistSet(nbins,lowbin,highbin,name,title,xaxis,tree,val,cuts="1",color=kBlack,linestyle=1):
+    hists = []
+    for p in range(0,3):
+        hists.append(CreateHist(nbins,lowbin,highbin,name,p,title,xaxis))
+        tree.Project(hists[-1].GetName(),val,"plane==0&&"+cuts)
+        HistShowOverflow(hists[-1])
+        hists[-1].SetLineWidth(2)
+        hists[-1].SetLineColor(color)
+        hists[-1].SetLineStyle(linestyle)
+    return hists
 
-tree.Project("h_roi_peak_0","roi_peak_charge","plane==0")
-tree.Project("h_roi_peak_1","roi_peak_charge","plane==1")
-tree.Project("h_roi_peak_2","roi_peak_charge","plane==2")
+def CreateCanvas(name,title,hists):
+    can = TCanvas("c_"+name,title+" Canvas",1000,1000)
+    can.Divide(2,2)
+    for c in range(0,3):
+        can.cd(c+1)
+        hists[c].Draw()
+    can.SaveAs("plots/"+name+".eps")
+    return can
 
-HistShowOverflow(h_roi_peak_0)
-HistShowOverflow(h_roi_peak_1)
-HistShowOverflow(h_roi_peak_2)
+def CreateCanvas2(name,title,labels,hists1,hists2):
+    can = TCanvas("c_"+name,title+" Canvas",1000,1000)
+    can.Divide(2,2)
+    for c in range(0,3):
+        can.cd(c+1)
+        hists1[c].Draw()
+        hists2[c].Draw("same")
+    can.cd(4)
+    legend = TLegend(0.1,0.1,0.9,0.9)
+    legend.AddEntry(hists1[0],labels[0],"l")
+    legend.AddEntry(hists2[0],labels[1],"l")
+    legend.Draw()
+    can.SaveAs("plots/"+name+".eps")
+    return can
 
-c_roi_peak = TCanvas("c_roi_peak","ROI Peak ADC Canvas",1000,1000)
-c_roi_peak.Divide(2,2)
-c_roi_peak.cd(1)
-h_roi_peak_0.Draw()
-c_roi_peak.cd(2)
-h_roi_peak_1.Draw()
-c_roi_peak.cd(3)
-h_roi_peak_2.Draw()
-c_roi_peak.SaveAs("plots/roi_peak.eps")
-
-nbins=200
-lowbin=-1
-highbin=1.5
-
-hcomp_peak_0 = TH1F("hcomp_peak_0","Peak Comparison, Plane 0;(Peak ADC - Peak MC Charge)/MC Charge;ROIs",nbins,lowbin,highbin)
-hcomp_peak_1 = TH1F("hcomp_peak_1","Peak Comparison, Plane 1;(Peak ADC - Peak MC Charge)/MC Charge;ROIs",nbins,lowbin,highbin)
-hcomp_peak_2 = TH1F("hcomp_peak_2","Peak Comparison, Plane 2;(Peak ADC - Peak MC Charge)/MC Charge;ROIs",nbins,lowbin,highbin)
-
-tree.Project("hcomp_peak_0","(roi_peak_charge-MCHits_PeakCharge)/MCHits_PeakCharge","plane==0")
-tree.Project("hcomp_peak_1","(roi_peak_charge-MCHits_PeakCharge)/MCHits_PeakCharge","plane==1")
-tree.Project("hcomp_peak_2","(roi_peak_charge-MCHits_PeakCharge)/MCHits_PeakCharge","plane==2")
-
-HistShowOverflow(hcomp_peak_0)
-HistShowOverflow(hcomp_peak_1)
-HistShowOverflow(hcomp_peak_2)
-
-c_comp_peak = TCanvas("c_comp_peak","Peak Comparison Canvas",1000,1000)
-c_comp_peak.Divide(2,2)
-c_comp_peak.cd(1)
-hcomp_peak_0.Draw()
-c_comp_peak.cd(2)
-hcomp_peak_1.Draw()
-c_comp_peak.cd(3)
-hcomp_peak_2.Draw()
-c_comp_peak.SaveAs("plots/peak_compare.eps")
+def CreateCanvas3(name,title,labels,hists1,hists2,hists3):
+    can = TCanvas("c_"+name,title+" Canvas",1000,1000)
+    can.Divide(2,2)
+    for c in range(0,3):
+        can.cd(c+1)
+        hists1[c].Draw()
+        hists2[c].Draw("same")
+        hists3[c].Draw("same")
+    can.cd(4)
+    legend = TLegend(0.1,0.1,0.9,0.9)
+    legend.AddEntry(hists1[0],labels[0],"l")
+    legend.AddEntry(hists2[0],labels[1],"l")
+    legend.AddEntry(hists3[0],labels[2],"l")
+    legend.Draw()
+    can.SaveAs("plots/"+name+".eps")
+    return can
 
 
-nbins=20
-lowbin=-10
-highbin=10
+name = "roi_peak"
+title = "ROI Peak ADC"
+hists_roi_peak = CreateHistSet(125,-10,140,name,title,"ROI peak ADC",tree,"roi_peak_charge")
+c_roi_peak = CreateCanvas(name,title,hists_roi_peak)
+c_roi_peak.Draw()
 
-hcomp_peaktime_0 = TH1F("hcomp_peaktime_0","Peak Time Comparison, Plane 0;Peak ROI Time - Peak MC Time;ROIs",nbins,lowbin,highbin)
-hcomp_peaktime_1 = TH1F("hcomp_peaktime_1","Peak Time Comparison, Plane 1;Peak ROI Time - Peak MC Time;ROIs",nbins,lowbin,highbin)
-hcomp_peaktime_2 = TH1F("hcomp_peaktime_2","Peak Time Comparison, Plane 2;Peak ROI Time - Peak MC Time;ROIs",nbins,lowbin,highbin)
+name = "peak_compare"
+title = "Peak comparison"
+hists_comp_peak = CreateHistSet(125,-1,1.4,
+                               name,title,
+                               "(ROI peak ADC - Peak MC charge)/Peak MC charge",
+                               tree,
+                               "(roi_peak_charge-MCHits_PeakCharge)/MCHits_PeakCharge")
+c_comp_peak = CreateCanvas(name,title,hists_comp_peak)
+c_comp_peak.Draw()
 
-tree.Project("hcomp_peaktime_0","(roi_peak_time-MCHits_Peak)","plane==0")
-tree.Project("hcomp_peaktime_1","(roi_peak_time-MCHits_Peak)","plane==1")
-tree.Project("hcomp_peaktime_2","(roi_peak_time-MCHits_Peak)","plane==2")
 
-HistShowOverflow(hcomp_peaktime_0)
-HistShowOverflow(hcomp_peaktime_1)
-HistShowOverflow(hcomp_peaktime_2)
+name = "peaktime_compare"
+title = "Peak time comparison"
+hists_comp_peaktime = CreateHistSet(20,-10,10,
+                                    name,title,
+                                    "(ROI peak tick - MC peack tick)",
+                                    tree,
+                                    "(roi_peak_time-MCHits_Peak)")
+c_comp_peaktime = CreateCanvas(name,title,hists_comp_peaktime)
+c_comp_peaktime.Draw()
 
-c_comp_peaktime = TCanvas("c_comp_peaktime","Peak Time Comparison Canvas",1000,1000)
-c_comp_peaktime.Divide(2,2)
-c_comp_peaktime.cd(1)
-hcomp_peaktime_0.Draw()
-c_comp_peaktime.cd(2)
-hcomp_peaktime_1.Draw()
-c_comp_peaktime.cd(3)
-hcomp_peaktime_2.Draw()
-c_comp_peaktime.SaveAs("plots/peaktime_compare.eps")
-
-nbins=200
-lowbin=-10
-highbin=90
-
-h_g_peak_0 = TH1F("h_g_peak_0","GaussHit Peak ADC, Plane 0;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_g_peak_1 = TH1F("h_g_peak_1","GaussHit Peak ADC, Plane 1;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_g_peak_2 = TH1F("h_g_peak_2","GaussHit Peak ADC, Plane 2;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_cc_peak_0 = TH1F("h_cc_peak_0","CCHit Peak ADC, Plane 0;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_cc_peak_1 = TH1F("h_cc_peak_1","CCHit Peak ADC, Plane 1;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_cc_peak_2 = TH1F("h_cc_peak_2","CCHit Peak ADC, Plane 2;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_rff_peak_0 = TH1F("h_rff_peak_0","RFFHit Peak ADC, Plane 0;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_rff_peak_1 = TH1F("h_rff_peak_1","RFFHit Peak ADC, Plane 1;Peak ADC;ROIs",nbins,lowbin,highbin)
-h_rff_peak_2 = TH1F("h_rff_peak_2","RFFHit Peak ADC, Plane 2;Peak ADC;ROIs",nbins,lowbin,highbin)
-
-tree.Project("h_g_peak_0","Hits_PeakCharge[0]","plane==0")
-tree.Project("h_g_peak_1","Hits_PeakCharge[0]","plane==1")
-tree.Project("h_g_peak_2","Hits_PeakCharge[0]","plane==2")
-tree.Project("h_cc_peak_0","Hits_PeakCharge[1]","plane==0")
-tree.Project("h_cc_peak_1","Hits_PeakCharge[1]","plane==1")
-tree.Project("h_cc_peak_2","Hits_PeakCharge[1]","plane==2")
-tree.Project("h_rff_peak_0","Hits_PeakCharge[2]","plane==0")
-tree.Project("h_rff_peak_1","Hits_PeakCharge[2]","plane==1")
-tree.Project("h_rff_peak_2","Hits_PeakCharge[2]","plane==2")
 
 nbins=150
 lowbin=-0.15
 highbin=0.15
+name="peak_compare"
+title="Hits peak comparison"
+xaxis="(Hit peak ADC - ROI peak ADC)/ROI peak ADC"
+hists_comp_g_peak = CreateHistSet(nbins,lowbin,highbin,
+                                  name+"_g",title,xaxis,
+                                  tree,
+                                  "(Hits_PeakCharge[0]-roi_peak_charge)/roi_peak_charge",
+                                  "roi_peak_charge>1&&NHits[0]>0",
+                                  kBlack)
+hists_comp_c_peak = CreateHistSet(nbins,lowbin,highbin,
+                                  name+"_c",title,xaxis,
+                                  tree,
+                                  "(Hits_PeakCharge[1]-roi_peak_charge)/roi_peak_charge",
+                                  "roi_peak_charge>1&&NHits[1]>0",
+                                  kRed)
+hists_comp_r_peak = CreateHistSet(nbins,lowbin,highbin,
+                                  name+"_r",title,xaxis,
+                                  tree,
+                                  "(Hits_PeakCharge[2]-roi_peak_charge)/roi_peak_charge",
+                                  "roi_peak_charge>1&&NHits[2]>0",
+                                  kBlue)
+labels = ["RFFHit","CCHit","GaussHit"]
+c_comp_hits_peak = CreateCanvas3("hits_peak_compare",title,labels,
+                                 hists_comp_r_peak,hists_comp_c_peak,hists_comp_g_peak)
+c_comp_hits_peak.Draw()
 
-hcomp_g_peak_0 = TH1F("hcomp_g_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-hcomp_g_peak_1 = TH1F("hcomp_g_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-hcomp_g_peak_2 = TH1F("hcomp_g_peak_2","Peak Comparison, Plane 2;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_g_peak_0","(Hits_PeakCharge[0]-roi_peak_charge)/roi_peak_charge","plane==0 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_peak_1","(Hits_PeakCharge[0]-roi_peak_charge)/roi_peak_charge","plane==1 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_peak_2","(Hits_PeakCharge[0]-roi_peak_charge)/roi_peak_charge","plane==2 && roi_peak_charge>1 && NHits[0]>0")
-hcomp_g_peak_0.SetLineColor(kBlack)
-hcomp_g_peak_0.SetLineWidth(2)
-hcomp_g_peak_1.SetLineColor(kBlack)
-hcomp_g_peak_1.SetLineWidth(2)
-hcomp_g_peak_2.SetLineColor(kBlack)
-hcomp_g_peak_2.SetLineWidth(2)
-
-
-hcomp_cc_peak_0 = TH1F("hcomp_cc_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-hcomp_cc_peak_1 = TH1F("hcomp_cc_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-hcomp_cc_peak_2 = TH1F("hcomp_cc_peak_2","Peak Comparison, Plane 2;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_cc_peak_0","(Hits_PeakCharge[1]-roi_peak_charge)/roi_peak_charge","plane==0 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_peak_1","(Hits_PeakCharge[1]-roi_peak_charge)/roi_peak_charge","plane==1 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_peak_2","(Hits_PeakCharge[1]-roi_peak_charge)/roi_peak_charge","plane==2 && roi_peak_charge>1 && NHits[1]>0")
-hcomp_cc_peak_0.SetLineColor(kRed)
-hcomp_cc_peak_0.SetLineWidth(2)
-hcomp_cc_peak_1.SetLineColor(kRed)
-hcomp_cc_peak_1.SetLineWidth(2)
-hcomp_cc_peak_2.SetLineColor(kRed)
-hcomp_cc_peak_2.SetLineWidth(2)
-
-hcomp_rff_peak_0 = TH1F("hcomp_rff_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-hcomp_rff_peak_1 = TH1F("hcomp_rff_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-hcomp_rff_peak_2 = TH1F("hcomp_rff_peak_2","Peak Comparison, Plane 2;(Hit peak ADC - ROI peak ADC)/ROI peak ADC;ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_rff_peak_0","(Hits_PeakCharge[2]-roi_peak_charge)/roi_peak_charge","plane==0 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_peak_1","(Hits_PeakCharge[2]-roi_peak_charge)/roi_peak_charge","plane==1 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_peak_2","(Hits_PeakCharge[2]-roi_peak_charge)/roi_peak_charge","plane==2 && roi_peak_charge>1 && NHits[2]>0")
-hcomp_rff_peak_0.SetLineColor(kBlue)
-hcomp_rff_peak_0.SetLineWidth(2)
-hcomp_rff_peak_1.SetLineColor(kBlue)
-hcomp_rff_peak_1.SetLineWidth(2)
-hcomp_rff_peak_2.SetLineColor(kBlue)
-hcomp_rff_peak_2.SetLineWidth(2)
-
-HistShowOverflow(hcomp_g_peak_0)
-HistShowOverflow(hcomp_g_peak_1)
-HistShowOverflow(hcomp_g_peak_2)
-HistShowOverflow(hcomp_cc_peak_0)
-HistShowOverflow(hcomp_cc_peak_1)
-HistShowOverflow(hcomp_cc_peak_2)
-HistShowOverflow(hcomp_rff_peak_0)
-HistShowOverflow(hcomp_rff_peak_1)
-HistShowOverflow(hcomp_rff_peak_2)
-
-c_comp_hits_peak = TCanvas("c_comp_hits_peak","Reconstructed Peak Amplitude Comparison Canvas",1000,1000)
-c_comp_hits_peak.Divide(2,2)
-c_comp_hits_peak.cd(1)
-hcomp_rff_peak_0.Draw()
-hcomp_cc_peak_0.Draw("same")
-hcomp_g_peak_0.Draw("same")
-c_comp_hits_peak.cd(2)
-hcomp_rff_peak_1.Draw()
-hcomp_cc_peak_1.Draw("same")
-hcomp_g_peak_1.Draw("same")
-c_comp_hits_peak.cd(3)
-hcomp_rff_peak_2.Draw()
-hcomp_cc_peak_2.Draw("same")
-hcomp_g_peak_2.Draw("same")
-c_comp_hits_peak.cd(4)
-legend = TLegend(0.1,0.1,0.9,0.9)
-legend.AddEntry(hcomp_g_peak_0,"GaussHit","l")
-legend.AddEntry(hcomp_cc_peak_0,"CCHit","l")
-legend.AddEntry(hcomp_rff_peak_0,"RFFHit","l")
-legend.Draw()
-c_comp_hits_peak.SaveAs("plots/hits_peak_compare.eps")
-
-c_comp_hits_peak.cd(1)
-hcomp_cc_peak_0.Draw()
-hcomp_g_peak_0.Draw("same")
-c_comp_hits_peak.cd(2)
-hcomp_cc_peak_1.Draw()
-hcomp_g_peak_1.Draw("same")
-c_comp_hits_peak.cd(3)
-hcomp_cc_peak_2.Draw()
-hcomp_g_peak_2.Draw("same")
-c_comp_hits_peak.cd(4)
-legend = TLegend(0.1,0.1,0.9,0.9)
-legend.AddEntry(hcomp_g_peak_0,"GaussHit","l")
-legend.AddEntry(hcomp_cc_peak_0,"CCHit","l")
-legend.Draw()
-c_comp_hits_peak.SaveAs("plots/hits_peak_compare_norff.eps")
+labels = ["CCHit","GaussHit"]
+c_comp_hits_peak_norff = CreateCanvas2("hits_peak_compare_norff",title,labels,
+                                       hists_comp_c_peak,hists_comp_g_peak)
+c_comp_hits_peak_norff.Draw()
 
 
 nbins=100
 lowbin=-5
 highbin=5
-
-hcomp_g_peaktime_0 = TH1F("hcomp_g_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_g_peaktime_1 = TH1F("hcomp_g_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_g_peaktime_2 = TH1F("hcomp_g_peaktime_2","Peak time comparison, Plane 2;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_g_peaktime_0","(Hits_Peak[0]-roi_peak_time)","plane==0 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_peaktime_1","(Hits_Peak[0]-roi_peak_time)","plane==1 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_peaktime_2","(Hits_Peak[0]-roi_peak_time)","plane==2 && roi_peak_charge>1 && NHits[0]>0")
-hcomp_g_peaktime_0.SetLineColor(kBlack)
-hcomp_g_peaktime_0.SetLineWidth(2)
-hcomp_g_peaktime_1.SetLineColor(kBlack)
-hcomp_g_peaktime_1.SetLineWidth(2)
-hcomp_g_peaktime_2.SetLineColor(kBlack)
-hcomp_g_peaktime_2.SetLineWidth(2)
-
-
-hcomp_cc_peaktime_0 = TH1F("hcomp_cc_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_cc_peaktime_1 = TH1F("hcomp_cc_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_cc_peaktime_2 = TH1F("hcomp_cc_peaktime_2","Peak time comparison, Plane 2;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_cc_peaktime_0","(Hits_Peak[1]-roi_peak_time)","plane==0 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_peaktime_1","(Hits_Peak[1]-roi_peak_time)","plane==1 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_peaktime_2","(Hits_Peak[1]-roi_peak_time)","plane==2 && roi_peak_charge>1 && NHits[1]>0")
-hcomp_cc_peaktime_0.SetLineColor(kRed)
-hcomp_cc_peaktime_0.SetLineWidth(2)
-hcomp_cc_peaktime_1.SetLineColor(kRed)
-hcomp_cc_peaktime_1.SetLineWidth(2)
-hcomp_cc_peaktime_2.SetLineColor(kRed)
-hcomp_cc_peaktime_2.SetLineWidth(2)
-
-hcomp_rff_peaktime_0 = TH1F("hcomp_rff_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_rff_peaktime_1 = TH1F("hcomp_rff_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_rff_peaktime_2 = TH1F("hcomp_rff_peaktime_2","Peak time comparison, Plane 2;(Hit peak tick - ROI peak tick);ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_rff_peaktime_0","(Hits_Peak[2]-roi_peak_time)","plane==0 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_peaktime_1","(Hits_Peak[2]-roi_peak_time)","plane==1 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_peaktime_2","(Hits_Peak[2]-roi_peak_time)","plane==2 && roi_peak_charge>1 && NHits[2]>0")
-hcomp_rff_peaktime_0.SetLineColor(kBlue)
-hcomp_rff_peaktime_0.SetLineWidth(2)
-hcomp_rff_peaktime_1.SetLineColor(kBlue)
-hcomp_rff_peaktime_1.SetLineWidth(2)
-hcomp_rff_peaktime_2.SetLineColor(kBlue)
-hcomp_rff_peaktime_2.SetLineWidth(2)
-
-HistShowOverflow(hcomp_g_peaktime_0)
-HistShowOverflow(hcomp_g_peaktime_1)
-HistShowOverflow(hcomp_g_peaktime_2)
-HistShowOverflow(hcomp_cc_peaktime_0)
-HistShowOverflow(hcomp_cc_peaktime_1)
-HistShowOverflow(hcomp_cc_peaktime_2)
-HistShowOverflow(hcomp_rff_peaktime_0)
-HistShowOverflow(hcomp_rff_peaktime_1)
-HistShowOverflow(hcomp_rff_peaktime_2)
-
-c_comp_hits_peaktime = TCanvas("c_comp_hits_peaktime","Reconstructed Peak Time Comparison Canvas",1000,1000)
-c_comp_hits_peaktime.Divide(2,2)
-c_comp_hits_peaktime.cd(1)
-hcomp_rff_peaktime_0.Draw()
-hcomp_cc_peaktime_0.Draw("same")
-hcomp_g_peaktime_0.Draw("same")
-c_comp_hits_peaktime.cd(2)
-hcomp_rff_peaktime_1.Draw()
-hcomp_cc_peaktime_1.Draw("same")
-hcomp_g_peaktime_1.Draw("same")
-c_comp_hits_peaktime.cd(3)
-hcomp_rff_peaktime_2.Draw()
-hcomp_cc_peaktime_2.Draw("same")
-hcomp_g_peaktime_2.Draw("same")
-c_comp_hits_peaktime.cd(4)
-legend = TLegend(0.1,0.1,0.9,0.9)
-legend.AddEntry(hcomp_g_peaktime_0,"GaussHit","l")
-legend.AddEntry(hcomp_cc_peaktime_0,"CCHit","l")
-legend.AddEntry(hcomp_rff_peaktime_0,"RFFHit","l")
-legend.Draw()
-c_comp_hits_peaktime.SaveAs("plots/hits_peaktime_compare.eps")
-
+name="peaktime_compare"
+title="Hits peak tick comparison"
+xaxis="(Hit peak tick - ROI peak tick)"
+hists_comp_g_peaktime = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_g",title,xaxis,
+                                      tree,
+                                      "(Hits_Peak[0]-roi_peak_time)",
+                                      "roi_peak_charge>1&&NHits[0]>0",
+                                      kBlack)
+hists_comp_c_peaktime = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_c",title,xaxis,
+                                      tree,
+                                      "(Hits_Peak[1]-roi_peak_time)",
+                                      "roi_peak_charge>1&&NHits[1]>0",
+                                      kRed)
+hists_comp_r_peaktime = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_r",title,xaxis,
+                                      tree,
+                                      "(Hits_Peak[2]-roi_peak_time)",
+                                      "roi_peak_charge>1&&NHits[2]>0",
+                                      kBlue)
+labels = ["RFFHit","CCHit","GaussHit"]
+c_comp_hits_peaktime = CreateCanvas3("hits_peaktime_compare",title,labels,
+                                 hists_comp_r_peaktime,hists_comp_c_peaktime,hists_comp_g_peaktime)
+c_comp_hits_peaktime.Draw()
 
 nbins=125
 lowbin=-1.
 highbin=1.5
-
-hcomp_g_mc_peak_0 = TH1F("hcomp_g_mc_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-hcomp_g_mc_peak_1 = TH1F("hcomp_g_mc_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-hcomp_g_mc_peak_2 = TH1F("hcomp_g_mc_peak_2","Peak Comparison, Plane 2;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_g_mc_peak_0","(Hits_PeakCharge[0]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==0 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_mc_peak_1","(Hits_PeakCharge[0]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==1 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_mc_peak_2","(Hits_PeakCharge[0]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==2 && roi_peak_charge>1 && NHits[0]>0")
-hcomp_g_mc_peak_0.SetLineColor(kBlack)
-hcomp_g_mc_peak_0.SetLineWidth(2)
-hcomp_g_mc_peak_1.SetLineColor(kBlack)
-hcomp_g_mc_peak_1.SetLineWidth(2)
-hcomp_g_mc_peak_2.SetLineColor(kBlack)
-hcomp_g_mc_peak_2.SetLineWidth(2)
-
-hcomp_cc_mc_peak_0 = TH1F("hcomp_cc_mc_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-hcomp_cc_mc_peak_1 = TH1F("hcomp_cc_mc_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-hcomp_cc_mc_peak_2 = TH1F("hcomp_cc_mc_peak_2","Peak Comparison, Plane 2;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_cc_mc_peak_0","(Hits_PeakCharge[1]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==0 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_mc_peak_1","(Hits_PeakCharge[1]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==1 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_mc_peak_2","(Hits_PeakCharge[1]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==2 && roi_peak_charge>1 && NHits[1]>0")
-hcomp_cc_mc_peak_0.SetLineColor(kRed)
-hcomp_cc_mc_peak_0.SetLineWidth(2)
-hcomp_cc_mc_peak_1.SetLineColor(kRed)
-hcomp_cc_mc_peak_1.SetLineWidth(2)
-hcomp_cc_mc_peak_2.SetLineColor(kRed)
-hcomp_cc_mc_peak_2.SetLineWidth(2)
-
-hcomp_rff_mc_peak_0 = TH1F("hcomp_rff_mc_peak_0","Peak Comparison, Plane 0;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-hcomp_rff_mc_peak_1 = TH1F("hcomp_rff_mc_peak_1","Peak Comparison, Plane 1;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-hcomp_rff_mc_peak_2 = TH1F("hcomp_rff_mc_peak_2","Peak Comparison, Plane 2;(Hit peak ADC - MC peak charge)/MC peak charge;ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_rff_mc_peak_0","(Hits_PeakCharge[2]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==0 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_mc_peak_1","(Hits_PeakCharge[2]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==1 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_mc_peak_2","(Hits_PeakCharge[2]-MCHits_PeakCharge)/MCHits_PeakCharge","plane==2 && roi_peak_charge>1 && NHits[2]>0")
-hcomp_rff_mc_peak_0.SetLineColor(kBlue)
-hcomp_rff_mc_peak_0.SetLineWidth(2)
-hcomp_rff_mc_peak_1.SetLineColor(kBlue)
-hcomp_rff_mc_peak_1.SetLineWidth(2)
-hcomp_rff_mc_peak_2.SetLineColor(kBlue)
-hcomp_rff_mc_peak_2.SetLineWidth(2)
-
-HistShowOverflow(hcomp_g_mc_peak_0)
-HistShowOverflow(hcomp_g_mc_peak_1)
-HistShowOverflow(hcomp_g_mc_peak_2)
-HistShowOverflow(hcomp_cc_mc_peak_0)
-HistShowOverflow(hcomp_cc_mc_peak_1)
-HistShowOverflow(hcomp_cc_mc_peak_2)
-HistShowOverflow(hcomp_rff_mc_peak_0)
-HistShowOverflow(hcomp_rff_mc_peak_1)
-HistShowOverflow(hcomp_rff_mc_peak_2)
-
-c_comp_hits_mc_peak = TCanvas("c_comp_hits_mc_peak","Reconstructed Peak Amplitude MC Comparison Canvas",1000,1000)
-c_comp_hits_mc_peak.Divide(2,2)
-c_comp_hits_mc_peak.cd(1)
-hcomp_rff_mc_peak_0.Draw()
-hcomp_cc_mc_peak_0.Draw("same")
-hcomp_g_mc_peak_0.Draw("same")
-c_comp_hits_mc_peak.cd(2)
-hcomp_rff_mc_peak_1.Draw()
-hcomp_cc_mc_peak_1.Draw("same")
-hcomp_g_mc_peak_1.Draw("same")
-c_comp_hits_mc_peak.cd(3)
-hcomp_rff_mc_peak_2.Draw()
-hcomp_cc_mc_peak_2.Draw("same")
-hcomp_g_mc_peak_2.Draw("same")
-c_comp_hits_mc_peak.cd(4)
-legend = TLegend(0.1,0.1,0.9,0.9)
-legend.AddEntry(hcomp_g_mc_peak_0,"GaussHit","l")
-legend.AddEntry(hcomp_cc_mc_peak_0,"CCHit","l")
-legend.AddEntry(hcomp_rff_mc_peak_0,"RFFHit","l")
-legend.Draw()
-c_comp_hits_mc_peak.SaveAs("plots/hits_mc_peak_compare.eps")
-
+name="peak_compare_mc"
+title="Hits peak MC comparison"
+xaxis="(Hit peak ADC - MC peak charge)/MC peak charge"
+hists_comp_g_peak_mc = CreateHistSet(nbins,lowbin,highbin,
+                                     name+"_g",title,xaxis,
+                                     tree,
+                                     "(Hits_PeakCharge[0]-MCHits_PeakCharge)/MCHits_PeakCharge",
+                                     "roi_peak_charge>1&&NHits[0]>0",
+                                      kBlack)
+hists_comp_c_peak_mc = CreateHistSet(nbins,lowbin,highbin,
+                                     name+"_c",title,xaxis,
+                                     tree,
+                                     "(Hits_PeakCharge[1]-MCHits_PeakCharge)/MCHits_PeakCharge",
+                                     "roi_peak_charge>1&&NHits[1]>0",
+                                     kRed)
+hists_comp_r_peak_mc = CreateHistSet(nbins,lowbin,highbin,
+                                     name+"_r",title,xaxis,
+                                     tree,
+                                     "(Hits_PeakCharge[2]-MCHits_PeakCharge)/MCHits_PeakCharge",
+                                     "roi_peak_charge>1&&NHits[2]>0",
+                                     kBlue)
+labels = ["RFFHit","CCHit","GaussHit"]
+c_comp_hits_peak_mc = CreateCanvas3("hits_peak_compare_mc",title,labels,
+                                    hists_comp_r_peak_mc,hists_comp_c_peak_mc,hists_comp_g_peak_mc)
+c_comp_hits_peak_mc.Draw()
 
 nbins=200
 lowbin=-10
 highbin=10
+name="peaktime_compare_mc"
+title="Hits peak tick MC comparison"
+xaxis="(Hit peak tick - MC peak tick)"
+hists_comp_g_peaktime_mc = CreateHistSet(nbins,lowbin,highbin,
+                                         name+"_g",title,xaxis,
+                                         tree,
+                                         "(Hits_Peak[0]-MCHits_Peak)",
+                                         "roi_peak_charge>1&&NHits[0]>0",
+                                         kBlack)
+hists_comp_c_peaktime_mc = CreateHistSet(nbins,lowbin,highbin,
+                                         name+"_c",title,xaxis,
+                                         tree,
+                                         "(Hits_Peak[1]-MCHits_Peak)",
+                                         "roi_peak_charge>1&&NHits[1]>0",
+                                         kRed)
+hists_comp_r_peaktime_mc = CreateHistSet(nbins,lowbin,highbin,
+                                         name+"_r",title,xaxis,
+                                         tree,
+                                         "(Hits_Peak[2]-MCHits_Peak)",
+                                         "roi_peak_charge>1&&NHits[2]>0",
+                                         kBlue)
+labels = ["RFFHit","CCHit","GaussHit"]
+c_comp_hits_peaktime_mc = CreateCanvas3("hits_peaktime_compare_mc",title,labels,
+                                        hists_comp_r_peaktime_mc,hists_comp_c_peaktime_mc,hists_comp_g_peaktime_mc)
+c_comp_hits_peaktime_mc.Draw()
 
-hcomp_g_mc_peaktime_0 = TH1F("hcomp_g_mc_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_g_mc_peaktime_1 = TH1F("hcomp_g_mc_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_g_mc_peaktime_2 = TH1F("hcomp_g_mc_peaktime_2","Peak time comparison, Plane 2;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_g_mc_peaktime_0","(Hits_Peak[0]-MCHits_Peak)","plane==0 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_mc_peaktime_1","(Hits_Peak[0]-MCHits_Peak)","plane==1 && roi_peak_charge>1 && NHits[0]>0")
-tree.Project("hcomp_g_mc_peaktime_2","(Hits_Peak[0]-MCHits_Peak)","plane==2 && roi_peak_charge>1 && NHits[0]>0")
-hcomp_g_mc_peaktime_0.SetLineColor(kBlack)
-hcomp_g_mc_peaktime_0.SetLineWidth(2)
-hcomp_g_mc_peaktime_1.SetLineColor(kBlack)
-hcomp_g_mc_peaktime_1.SetLineWidth(2)
-hcomp_g_mc_peaktime_2.SetLineColor(kBlack)
-hcomp_g_mc_peaktime_2.SetLineWidth(2)
-
-
-hcomp_cc_mc_peaktime_0 = TH1F("hcomp_cc_mc_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_cc_mc_peaktime_1 = TH1F("hcomp_cc_mc_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_cc_mc_peaktime_2 = TH1F("hcomp_cc_mc_peaktime_2","Peak time comparison, Plane 2;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_cc_mc_peaktime_0","(Hits_Peak[1]-MCHits_Peak)","plane==0 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_mc_peaktime_1","(Hits_Peak[1]-MCHits_Peak)","plane==1 && roi_peak_charge>1 && NHits[1]>0")
-tree.Project("hcomp_cc_mc_peaktime_2","(Hits_Peak[1]-MCHits_Peak)","plane==2 && roi_peak_charge>1 && NHits[1]>0")
-hcomp_cc_mc_peaktime_0.SetLineColor(kRed)
-hcomp_cc_mc_peaktime_0.SetLineWidth(2)
-hcomp_cc_mc_peaktime_1.SetLineColor(kRed)
-hcomp_cc_mc_peaktime_1.SetLineWidth(2)
-hcomp_cc_mc_peaktime_2.SetLineColor(kRed)
-hcomp_cc_mc_peaktime_2.SetLineWidth(2)
-
-hcomp_rff_mc_peaktime_0 = TH1F("hcomp_rff_mc_peaktime_0","Peak time comparison, Plane 0;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_rff_mc_peaktime_1 = TH1F("hcomp_rff_mc_peaktime_1","Peak time comparison, Plane 1;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-hcomp_rff_mc_peaktime_2 = TH1F("hcomp_rff_mc_peaktime_2","Peak time comparison, Plane 2;(Hit peak tick - MC peak tick);ROIs",nbins,lowbin,highbin)
-tree.Project("hcomp_rff_mc_peaktime_0","(Hits_Peak[2]-MCHits_Peak)","plane==0 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_mc_peaktime_1","(Hits_Peak[2]-MCHits_Peak)","plane==1 && roi_peak_charge>1 && NHits[2]>0")
-tree.Project("hcomp_rff_mc_peaktime_2","(Hits_Peak[2]-MCHits_Peak)","plane==2 && roi_peak_charge>1 && NHits[2]>0")
-hcomp_rff_mc_peaktime_0.SetLineColor(kBlue)
-hcomp_rff_mc_peaktime_0.SetLineWidth(2)
-hcomp_rff_mc_peaktime_1.SetLineColor(kBlue)
-hcomp_rff_mc_peaktime_1.SetLineWidth(2)
-hcomp_rff_mc_peaktime_2.SetLineColor(kBlue)
-hcomp_rff_mc_peaktime_2.SetLineWidth(2)
-
-HistShowOverflow(hcomp_g_mc_peaktime_0)
-HistShowOverflow(hcomp_g_mc_peaktime_1)
-HistShowOverflow(hcomp_g_mc_peaktime_2)
-HistShowOverflow(hcomp_cc_mc_peaktime_0)
-HistShowOverflow(hcomp_cc_mc_peaktime_1)
-HistShowOverflow(hcomp_cc_mc_peaktime_2)
-HistShowOverflow(hcomp_rff_mc_peaktime_0)
-HistShowOverflow(hcomp_rff_mc_peaktime_1)
-HistShowOverflow(hcomp_rff_mc_peaktime_2)
-
-c_comp_hits_mc_peaktime = TCanvas("c_comp_hits_mc_peaktime","Reconstructed Peak Time MC Comparison Canvas",1000,1000)
-c_comp_hits_mc_peaktime.Divide(2,2)
-c_comp_hits_mc_peaktime.cd(1)
-hcomp_rff_mc_peaktime_0.Draw()
-hcomp_cc_mc_peaktime_0.Draw("same")
-hcomp_g_mc_peaktime_0.Draw("same")
-c_comp_hits_mc_peaktime.cd(2)
-hcomp_rff_mc_peaktime_1.Draw()
-hcomp_cc_mc_peaktime_1.Draw("same")
-hcomp_g_mc_peaktime_1.Draw("same")
-c_comp_hits_mc_peaktime.cd(3)
-hcomp_rff_mc_peaktime_2.Draw()
-hcomp_cc_mc_peaktime_2.Draw("same")
-hcomp_g_mc_peaktime_2.Draw("same")
-c_comp_hits_mc_peaktime.cd(4)
-legend = TLegend(0.1,0.1,0.9,0.9)
-legend.AddEntry(hcomp_g_mc_peaktime_0,"GaussHit","l")
-legend.AddEntry(hcomp_cc_mc_peaktime_0,"CCHit","l")
-legend.AddEntry(hcomp_rff_mc_peaktime_0,"RFFHit","l")
-legend.Draw()
-c_comp_hits_mc_peaktime.SaveAs("plots/hits_mc_peaktime_compare.eps")
+nbins=19
+lowbin=-9.5
+highbin=9.5
+name="nhits_compare_mc"
+title="NHits comparison"
+xaxis="(N_{Reco} - N_{Sim})"
+hists_comp_g_nhits_mc = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_g",title,xaxis,
+                                      tree,
+                                      "(NHits[0]-NMCHits)",
+                                      "1",
+                                      kBlack)
+hists_comp_c_nhits_mc = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_c",title,xaxis,
+                                      tree,
+                                      "(NHits[1]-NMCHits)",
+                                      "1",
+                                      kRed)
+hists_comp_r_nhits_mc = CreateHistSet(nbins,lowbin,highbin,
+                                      name+"_r",title,xaxis,
+                                      tree,
+                                      "(NHits[2]-NMCHits)",
+                                      "1",
+                                      kBlue)
+labels = ["RFFHit","CCHit","GaussHit"]
+c_comp_nhits_mc = CreateCanvas3("nhits_compare_mc",title,labels,
+                                hists_comp_r_nhits_mc,hists_comp_c_nhits_mc,hists_comp_g_nhits_mc)
+c_comp_nhits_mc.Draw()
 
 finalinput = raw_input("Hit enter to exit.")
-
 sys.exit()
