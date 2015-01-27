@@ -1,0 +1,6 @@
+#ifndef LARLITE_FLASHHYPOTHESIS_SAMPLE_CXX
+#define LARLITE_FLASHHYPOTHESIS_SAMPLE_CXX
+
+#include "sample.h"
+
+#endif
