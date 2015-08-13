@@ -1,0 +1,6 @@
+#ifndef OVERLAY_DATAOVERLAY_SAMPLE_CXX
+#define OVERLAY_DATAOVERLAY_SAMPLE_CXX
+
+#include "sample.h"
+
+#endif

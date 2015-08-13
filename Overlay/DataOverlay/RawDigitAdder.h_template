@@ -1,0 +1,63 @@
+/**
+ * \file RawDigitAdder.h
+ *
+ * \ingroup DataOverlay
+ * 
+ * \brief Defintion for a templated base class to add two vectors together,
+ *        and give an "added" waveform.
+ *
+ * @author wketchum
+ */
+
+/** \addtogroup DataOverlay
+
+    @{*/
+#ifndef OVERLAY_DATAOVERLAY_RAWDIGITADDER_H
+#define OVERLAY_DATAOVERLAY_RAWDIGITADDER_H
+
+#include <vector>
+
+/**
+   \class RawDigitAdder
+   Add two vectors together. This is a base class
+   that just assumes things are linear, and that you add signed integers. Experiments can 
+   have a class inherit from this one, and use that.
+   
+*/
+template <class T>
+class RawDigitAdder{
+
+public:
+
+  /// Default constructor
+  RawDigitAdder(){}
+
+  void AddRawDigits( std::vector<T> const&,
+		     std::vector<T> const&,
+		     std::vector<T>&);
+  void AddRawDigits( std::vector<T> const&,
+		     std::vector<T>&);
+  void AddRawDigits( std::vector< std::vector<T> > const&,
+		     std::vector<T>&);
+  
+  
+  /// Default destructor
+  virtual ~RawDigitAdder(){};
+
+ private:
+
+  virtual void AddRawDigit( T const&, T const&, T&);
+  void AddRawDigit( T const&, T&);
+
+  void CheckVectorSize(std::vector<T> const&, std::vector<T> const&);
+  
+  void FixOverflow(T&);
+};
+
+namespace{
+  RawDigitAdder<short> rda;
+}
+
+#endif
+/** @} */ // end of doxygen group 
+

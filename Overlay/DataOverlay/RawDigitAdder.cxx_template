@@ -1,0 +1,65 @@
+#ifndef OVERLAY_DATAOVERLAY_RAWDIGITADDER_CXX
+#define OVERLAY_DATAOVERLAY_RAWDIGITADDER_CXX
+
+#include "RawDigitAdder.h"
+#include <limits>
+#include <stdexcept>
+
+template <class T>
+void RawDigitAdder<T>::AddRawDigits( std::vector<T> const& inputVec1,
+			     std::vector<T> const& inputVec2,
+			     std::vector<T>& outputVec)
+{
+  CheckVectorSize(inputVec1,inputVec2);
+  outputVec.clear(); outputVec.resize(inputVec1.size());
+}
+
+template <class T>
+void RawDigitAdder<T>::AddRawDigits( std::vector<T> const& inputVec1,
+			     std::vector<T>& inputVec2)
+{
+  CheckVectorSize(inputVec1,inputVec2);
+}
+
+template <class T>
+void RawDigitAdder<T>::AddRawDigits( std::vector< std::vector<T> > const& inputVecList,
+			     std::vector<T>& outputVec)
+{
+  if(inputVecList.size()==0)
+    throw std::runtime_error("Error in RawDigitAdder::AddRawDigits : Input vector list is empty.");
+  
+  for(auto const& vec : inputVecList)
+    CheckVectorSize(inputVecList[0].size(),vec.size());
+
+  outputVec.clear(); outputVec.resize(inputVecList[0].size());
+  
+}
+
+template <class T>
+void RawDigitAdder<T>::CheckVectorSize(std::vector<T> const& vec1,
+			       std::vector<T> const& vec2)
+{
+  if(vec1.size() != vec2.size())
+    throw std::runtime_error("Error in RawDigitAdder: Failed CheckVectorSize()");
+}
+
+template <class T>
+void RawDigitAdder<T>::AddRawDigit(T const& d1, T const& d2, T& d_out)
+{
+  d_out = d1 + d2;
+  FixOverflow(d_out);
+}
+
+template <class T>
+void RawDigitAdder<T>::AddRawDigit(T const& d1, T& d2)
+{
+  AddDigit(d1,d2,d2);
+}
+
+template <class T>
+void RawDigitAdder<T>::FixOverflow(T& d)
+{ 
+  if(d<0)
+    d = std::numeric_limits<T>::max();
+}
+#endif
